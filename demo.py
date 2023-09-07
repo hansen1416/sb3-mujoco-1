@@ -23,12 +23,13 @@ and conaffinity=“2”, they will collide, because 3 & 2 = 2.
 """
 
 
+# https://github.com/deepmind/mujoco/blob/main/doc/XMLreference.rst
+
 xml = """
 <mujoco>
     <option gravity="0 0 -9.81">
       <flag contact="enable"/>
     </option>
-
     <worldbody>
         <light name="light" pos="0 -5 5"/>
         <geom type="plane" size="1 1 0.1" rgba="1 1 1 1"/>
@@ -44,7 +45,6 @@ xml = """
             <geom name="green_sphere" pos="0 0 0" size="0.2" mass="1" rgba="0 1 0 1" contype="1" conaffinity="1"/>
         </body>
     </worldbody>
-
     <actuator>
         <general joint="ball_joint" dyntype="none" dynprm="1" forcerange="-1 1" forcelimited="true"/>
     </actuator>
@@ -69,11 +69,18 @@ xml1 = """
 model = mujoco.MjModel.from_xml_string(xml1)
 data = mujoco.MjData(model)
 
+
+# enable joint visualization option:
 scene_option = mujoco.MjvOption()
 scene_option.flags[mujoco.mjtVisFlag.mjVIS_JOINT] = True
 
 print('default gravity', model.opt.gravity)
 print('default timestep', model.opt.timestep)
+
+print('Total number of DoFs in the model:', model.nv)
+print('Generalized positions:', data.qpos)
+print('Generalized velocities:', data.qvel)
+
 
 with mujoco.viewer.launch_passive(model, data) as viewer:
 
@@ -91,6 +98,9 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
     start = time.time()
     while viewer.is_running() and time.time() - start < 5:
         step_start = time.time()
+
+        # is this line necessary?
+        mujoco.mj_forward(model, data)
 
         # mj_step can be replaced with code that also evaluates
         # a policy and applies a control signal before stepping the physics.
