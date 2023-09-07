@@ -31,6 +31,7 @@ xml = """
 
     <worldbody>
         <light name="light" pos="0 -5 5"/>
+        <geom type="plane" size="1 1 0.1" rgba="1 1 1 1"/>
         <body name="box" euler="0 0 0">
             <geom name="left" type="box" pos="5. 5.0 0" size=".1 5. 5." rgba="1 0 0 1" quat="{0} {1} {2} {3}"/>
             <geom name="back" type="box" pos="10. 0. 0" size=".1 5. 5." rgba="1 0 0 1" quat="{4} {5} {6} {7}"/>
@@ -38,7 +39,7 @@ xml = """
             <geom name="top" type="box" pos="5 0 5." size=".1 5. 5." rgba="1 0 0 1" quat="{12} {13} {14} {15}"/>
             <geom name="bottom" type="box" pos="5 0 -5" size=".1 5. 5." rgba="1 0 0 1" quat="{16} {17} {18} {19}"/>
         </body>
-        <body name="ball" euler="0 0 0">
+        <body name="ball" euler="0 0 0" pos="0 0 4">
             <joint name="ball_joint" type="free"/>
             <geom name="green_sphere" pos="0 0 0" size="0.2" mass="1" rgba="0 1 0 1" contype="1" conaffinity="1"/>
         </body>
@@ -51,12 +52,28 @@ xml = """
 """.format(*q_left, *q_back, *q_right, *q_top, *q_bottom)
 
 
-model = mujoco.MjModel.from_xml_string(xml)
+xml1 = """
+<mujoco>
+  <worldbody>
+    <light diffuse=".5 .5 .5" pos="0 0 3" dir="0 0 -1"/>
+    <geom type="plane" size="1 1 0.1" rgba=".9 0 0 1"/>
+    <body pos="0 0 1">
+      <joint type="free"/>
+      <geom type="box" size=".1 .2 .3" rgba="0 .9 0 1"/>
+    </body>
+  </worldbody>
+</mujoco>
+"""
+
+
+model = mujoco.MjModel.from_xml_string(xml1)
 data = mujoco.MjData(model)
 
 scene_option = mujoco.MjvOption()
 scene_option.flags[mujoco.mjtVisFlag.mjVIS_JOINT] = True
 
+print('default gravity', model.opt.gravity)
+print('default timestep', model.opt.timestep)
 
 with mujoco.viewer.launch_passive(model, data) as viewer:
 
@@ -72,7 +89,7 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
 
     # Close the viewer automatically after 30 wall-seconds.
     start = time.time()
-    while viewer.is_running() and time.time() - start < 50:
+    while viewer.is_running() and time.time() - start < 5:
         step_start = time.time()
 
         # mj_step can be replaced with code that also evaluates
