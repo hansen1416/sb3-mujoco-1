@@ -116,11 +116,9 @@ class ArmSim:
                 else:
                     motion_idx -= 1
 
-                if motion_idx > len(elbow_angle) - 1:
-                    motion_idx = 0
+                if motion_idx >= len(elbow_angle) - 1:
                     direction *= -1
-                elif motion_idx < 0:
-                    motion_idx = 0
+                elif motion_idx <= 0:
                     direction *= -1
 
                 # joint manipulation end
