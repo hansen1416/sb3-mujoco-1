@@ -67,6 +67,7 @@ class ArmSim:
         shoulder_angle = np.linspace(10, 86, 100)
         elbow_angle = np.linspace(110, 0, 100)
         motion_idx = 0
+        direction = 1
 
         mujoco.mj_kinematics(self.model, self.data)
         mujoco.mj_forward(self.model, self.data)
@@ -110,10 +111,17 @@ class ArmSim:
                 self.data.qvel[3] = 0
                 # print(data.qvel)
 
-                motion_idx += 1
+                if direction == 1:
+                    motion_idx += 1
+                else:
+                    motion_idx -= 1
 
                 if motion_idx > len(elbow_angle) - 1:
                     motion_idx = 0
+                    direction *= -1
+                elif motion_idx < 0:
+                    motion_idx = 0
+                    direction *= -1
 
                 # joint manipulation end
 
