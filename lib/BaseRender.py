@@ -23,7 +23,7 @@ class BaseRender:
             viewer.cam.lookat[0] = 0  # x position
             viewer.cam.lookat[1] = 0  # y position
             viewer.cam.lookat[2] = 0  # z position
-            viewer.cam.distance = 3  # distance from the target
+            viewer.cam.distance = 4  # distance from the target
             viewer.cam.elevation = -30  # elevation angle
             viewer.cam.azimuth = 0  # azimuth angle
 
@@ -36,7 +36,7 @@ class BaseRender:
             # Close the viewer automatically after 30 wall-seconds.
             start = time.time()
 
-            while viewer.is_running() and time.time() - start < 10:
+            while viewer.is_running() and time.time() - start < 6:
 
                 step_start = time.time()
 
