@@ -8,6 +8,11 @@ from transforms3d import quaternions
 
 
 tall = 1.6
+target_x = -1.1
+target_y = 0.5
+target_z = 1.4
+string_length = 0.4
+achor_z = target_z + string_length
 
 xml = """
 <mujoco>
@@ -17,8 +22,13 @@ xml = """
         <material name="grid" texture="grid" texrepeat="8 8" reflectance=".2"/>
     </asset>
     <worldbody>
+        
         <light pos="0 0 2."/>
+        
         <geom size="1 1 .01" type="plane" material="grid"/>
+        
+        <site name="anchor" pos="{1} {2} {4}" size=".01"/>
+
         <body pos="0 0 0">
             <geom name="spine" type="box" fromto="0 0 0. 0 0 {0}" size=".1" 
                 pos="0 0 0" rgba="1 1 1 1"/>
@@ -45,9 +55,23 @@ xml = """
                 </body>
             </body>
         </body>
+
+        <body name="target" pos="{1} {2} {3}">
+            <joint name="free" type="free"/>
+            <geom name="red_sphere" type="sphere" size=".06" rgba="1 0 0 1"/>
+            <site name="hook" pos="0. 0. 0." size=".01"/>
+        </body>
+
     </worldbody>
+
+    <tendon>
+        <spatial name="wire" limited="true" range="0 {5}" width="0.003">
+        <site site="anchor"/>
+        <site site="hook"/>
+        </spatial>
+    </tendon>
 </mujoco>
-""".format(tall)
+""".format(tall, target_x, target_y, target_z, achor_z, string_length)
 
 
 class ArmSim:
@@ -60,10 +84,10 @@ class ArmSim:
         scene_option = mujoco.MjvOption()
         scene_option.flags[mujoco.mjtVisFlag.mjVIS_JOINT] = True
 
-        self.model.opt.timestep = 0.01
+        self.model.opt.timestep = 0.002
 
     def run(self):
-
+        # todo this is linear speed, add acceleration
         shoulder_angle = np.linspace(10, 86, 100)
         elbow_angle = np.linspace(110, 0, 100)
         motion_idx = 0
