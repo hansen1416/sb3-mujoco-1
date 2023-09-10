@@ -62,7 +62,7 @@ class ArmSim:
 
         self.model.opt.timestep = 0.01
 
-    def run(self, init_callback=None, step_callback=None):
+    def run(self):
 
         shoulder_angle = np.arange(10, 86, 1)
         shoulder_idx = 0
