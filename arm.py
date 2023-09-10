@@ -64,11 +64,9 @@ class ArmSim:
 
     def run(self):
 
-        shoulder_angle = np.arange(10, 86, 1)
-        shoulder_idx = 0
-
-        elbow_angle = np.arange(0, 110, 1)
-        elbow_idx = 0
+        shoulder_angle = np.linspace(10, 86, 100)
+        elbow_angle = np.linspace(110, 0, 100)
+        motion_idx = 0
 
         mujoco.mj_kinematics(self.model, self.data)
         mujoco.mj_forward(self.model, self.data)
@@ -100,30 +98,22 @@ class ArmSim:
 
                 # joint manipulation start
 
-                # q = quaternions.axangle2quat(
-                #     [0, 1, 0], math.radians(shoulder_angle[shoulder_idx]), is_normalized=True)
-
                 q = quaternions.axangle2quat(
-                    [1, 0, 0], math.radians(20), is_normalized=True)
+                    [0, 1, 0], math.radians(shoulder_angle[motion_idx]), is_normalized=True)
 
                 self.data.qpos[0] = q[0]  # w
                 self.data.qpos[1] = q[1]  # x
                 self.data.qpos[2] = q[2]  # y
                 self.data.qpos[3] = q[3]  # z
 
-                shoulder_idx += 1
-
-                if shoulder_idx > len(shoulder_angle) - 1:
-                    shoulder_idx = 0
-
-                self.data.qpos[4] = math.radians(elbow_angle[elbow_idx])  # w
+                self.data.qpos[4] = math.radians(elbow_angle[motion_idx])  # w
                 self.data.qvel[3] = 0
                 # print(data.qvel)
 
-                elbow_idx += 1
+                motion_idx += 1
 
-                if elbow_idx > len(elbow_angle) - 1:
-                    elbow_idx = 0
+                if motion_idx > len(elbow_angle) - 1:
+                    motion_idx = 0
 
                 # joint manipulation end
 
