@@ -342,8 +342,8 @@ class ArmSim:
                     forces[i] += forcetorque[0:3]
                     penetration[i] = min(penetration[i], c.dist)
 
-                    print('name of geom1: ', self.model.geom(c.geom1).name)
-                    print('name of geom2: ', self.model.geom(c.geom2).name)
+                    # print('name of geom1: ', self.model.geom(c.geom1).name)
+                    # print('name of geom2: ', self.model.geom(c.geom2).name)
 
         # print(forces)
         # print(penetration)
