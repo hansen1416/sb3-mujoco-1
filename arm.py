@@ -100,17 +100,12 @@ class ArmSim:
 
         self.model.opt.timestep = 0.002
 
-    def run(self):
-        # todo this is linear speed, add acceleration
-        shoulder_angle = np.linspace(10, 86, 100)
-        elbow_angle = np.linspace(110, 0, 100)
-        motion_idx = 0
-        direction = 1
-
-        mujoco.mj_kinematics(self.model, self.data)
-        mujoco.mj_forward(self.model, self.data)
+    def run_with_viewer(self):
 
         with mujoco.viewer.launch_passive(self.model, self.data) as viewer:
+
+            mujoco.mj_kinematics(self.model, self.data)
+            mujoco.mj_forward(self.model, self.data)
 
             # set camera
             viewer.cam.lookat[0] = 0  # x position
@@ -122,6 +117,12 @@ class ArmSim:
 
             # random initial rotational velocity:
             mujoco.mj_resetData(self.model, self.data)
+
+            # todo this is linear speed, add acceleration
+            shoulder_angle = np.linspace(10, 86, 100)
+            elbow_angle = np.linspace(110, 0, 100)
+            motion_idx = 0
+            direction = 1
 
             print(self.data.qpos)
             print(self.data.qvel)
@@ -170,6 +171,78 @@ class ArmSim:
 
                 if time_until_next_step > 0:
                     time.sleep(time_until_next_step)
+
+    def run(self, n=1000):
+
+        # random initial rotational velocity:
+        mujoco.mj_resetData(self.model, self.data)
+
+        # todo this is linear speed, add acceleration
+        shoulder_angle = np.linspace(10, 86, 100)
+        elbow_angle = np.linspace(110, 0, 100)
+        motion_idx = 0
+        direction = 1
+
+        print(self.data.qpos)
+        print(self.data.qvel)
+
+        # Close the viewer automatically after 30 wall-seconds.
+        for _ in range(n):
+
+            mujoco.mj_step(self.model, self.data)
+
+            # joint manipulation start
+            q = quaternions.axangle2quat(
+                [0, 1, 0], math.radians(shoulder_angle[motion_idx]), is_normalized=True)
+
+            self.data.qpos[0] = q[0]  # w
+            self.data.qpos[1] = q[1]  # x
+            self.data.qpos[2] = q[2]  # y
+            self.data.qpos[3] = q[3]  # z
+
+            self.data.qpos[4] = math.radians(elbow_angle[motion_idx])  # w
+            self.data.qvel[3] = 0
+            # print(data.qvel)
+
+            if direction == 1:
+                motion_idx += 1
+            else:
+                motion_idx -= 1
+
+            if motion_idx >= len(elbow_angle) - 1:
+                direction *= -1
+            elif motion_idx <= 0:
+                direction *= -1
+            # joint manipulation end
+
+            """
+            <MjContact
+            H: array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                0., 0.])
+            dim: 3
+            dist: -0.0020774606072078428
+            efc_address: 1
+            exclude: 0
+            frame: array([ 0.92154504,  0.11084697,  0.37211248, -0.10278388,  0.99383749,
+                -0.0415033 , -0.37441985,  0.        ,  0.92725928])
+            friction: array([1.e+00, 1.e+00, 5.e-03, 1.e-04, 1.e-04])
+            geom1: 6
+            geom2: 5
+            includemargin: 0.0
+            mu: 1.0
+            pos: array([-1.13065943,  0.52141824,  1.42430136])
+            solimp: array([9.0e-01, 9.5e-01, 1.0e-03, 5.0e-01, 2.0e+00])
+            solref: array([0.02, 1.  ])
+            solreffriction: array([0., 0.])
+            >
+            """
+
+            if len(self.data.contact):
+                print(self.data.contact[0])
+
+            # for j,c in enumerate( self.data.contact):
+            #     print(j,c)
 
 
 if __name__ == "__main__":
