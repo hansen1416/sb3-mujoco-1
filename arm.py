@@ -101,6 +101,18 @@ def plot_force(times, forces):
     plt.close()  # close the window and release the memory
 
 
+def plot_normal_force(times, forces):
+    plt.plot(times, forces)
+    plt.title('normal (z) force - log scale')
+    plt.ylabel('Newton')
+    plt.yscale('log')
+    plt.xlabel('second')
+
+    plt.savefig(os.path.join('img', 'normal_force.png'))
+    plt.clf()  # clear the figure
+    plt.close()  # close the window and release the memory
+
+
 def plot_penetration(times, penetration):
     plt.plot(times, penetration)
     plt.title('penetration depth')
@@ -108,6 +120,37 @@ def plot_penetration(times, penetration):
     plt.xlabel('second')
 
     plt.savefig(os.path.join('img', 'penetration.png'))
+    plt.clf()  # clear the figure
+    plt.close()  # close the window and release the memory
+
+
+def plot_acceleration(times, acceleration):
+    plt.plot(times, acceleration)
+    plt.title('acceleration')
+    plt.ylabel('(meter,radian)/s/s')
+
+    plt.savefig(os.path.join('img', 'acceleration.png'))
+    plt.clf()  # clear the figure
+    plt.close()  # close the window and release the memory
+
+
+def plot_velocity(times, velocity):
+    plt.plot(times, velocity)
+    plt.title('velocity')
+    plt.ylabel('(meter,radian)/s')
+    plt.xlabel('second')
+
+    plt.savefig(os.path.join('img', 'velocity.png'))
+    plt.clf()  # clear the figure
+    plt.close()  # close the window and release the memory
+
+def plot_ncon(times, ncon):
+    plt.plot(times, ncon)
+    plt.title('number of contacts')
+    plt.ylabel('count')
+    plt.yticks(range(6))
+
+    plt.savefig(os.path.join('img', 'ncon.png'))
     plt.clf()  # clear the figure
     plt.close()  # close the window and release the memory
 
@@ -211,9 +254,15 @@ class ArmSim:
         print(self.data.qvel)
 
         sim_time = np.zeros(n_steps)
+        forcetorque = np.zeros(6)
+
         forces = np.zeros((n_steps, 3))
         penetration = np.zeros(n_steps)
-        forcetorque = np.zeros(6)
+        
+
+        ncon = np.zeros(n_steps)
+        velocity = np.zeros((n_steps, self.model.nv))
+        acceleration = np.zeros((n_steps, self.model.nv))
 
         # Close the viewer automatically after 30 wall-seconds.
         for i in range(n_steps):
@@ -245,6 +294,10 @@ class ArmSim:
             elif motion_idx <= 0:
                 direction *= -1
             # joint manipulation end
+
+            ncon[i] = self.data.ncon
+            velocity[i] = self.data.qvel[:]
+            acceleration[i] = self.data.qacc[:]
 
             """
             <MjContact
@@ -296,7 +349,11 @@ class ArmSim:
         # print(penetration)
 
         plot_force(sim_time, forces)
+        plot_normal_force(sim_time, forces[:, 0])
         plot_penetration(sim_time, penetration)
+        plot_acceleration(sim_time, acceleration)
+        plot_velocity(sim_time, velocity)
+        plot_ncon(sim_time, ncon)
 
 
 if __name__ == "__main__":
