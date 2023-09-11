@@ -60,7 +60,7 @@ xml = """
                     <geom name="lower_arm" type="cylinder"  fromto="0 0 0. 0 0 -{lower_arm_l}" size=".08" 
                     pos="0 0 0" rgba="{skin_color}"/>
 
-                    <!-- Wrist joint -->
+                    <!-- Hand -->
                     <body pos="0. 0. -{lower_arm_l}" gravcomp="1">
                         <geom name="hand" type="cylinder" fromto="0 0 0.0 0 0 -{hand_l}" size="0.09" 
                         pos="0 0 0" rgba="{skin_color}"/>
@@ -168,11 +168,17 @@ class ArmSim:
         self.model.opt.timestep = 0.002
 
     def run_with_viewer(self):
+            
+        mujoco.mj_kinematics(self.model, self.data)
+        mujoco.mj_forward(self.model, self.data)
+
+        # todo this is linear speed, add acceleration
+        shoulder_angle = np.linspace(10, 86, 100)
+        elbow_angle = np.linspace(110, 0, 100)
+        motion_idx = 0
+        direction = 1
 
         with mujoco.viewer.launch_passive(self.model, self.data) as viewer:
-
-            mujoco.mj_kinematics(self.model, self.data)
-            mujoco.mj_forward(self.model, self.data)
 
             # set camera
             viewer.cam.lookat[0] = 0  # x position
@@ -185,14 +191,8 @@ class ArmSim:
             # random initial rotational velocity:
             mujoco.mj_resetData(self.model, self.data)
 
-            # todo this is linear speed, add acceleration
-            shoulder_angle = np.linspace(10, 86, 100)
-            elbow_angle = np.linspace(110, 0, 100)
-            motion_idx = 0
-            direction = 1
-
-            print(self.data.qpos)
-            print(self.data.qvel)
+            # print(self.data.qpos)
+            # print(self.data.qvel)
 
             # Close the viewer automatically after 30 wall-seconds.
             start = time.time()
@@ -250,8 +250,8 @@ class ArmSim:
         motion_idx = 0
         direction = 1
 
-        print(self.data.qpos)
-        print(self.data.qvel)
+        # print(self.data.qpos)
+        # print(self.data.qvel)
 
         sim_time = np.zeros(n_steps)
         forcetorque = np.zeros(6)
@@ -299,6 +299,17 @@ class ArmSim:
             velocity[i] = self.data.qvel[:]
             acceleration[i] = self.data.qacc[:]
 
+            # todo, geom views are not changing? use joint info for observations
+            print('---------------')
+            print(self.data.qpos.shape) # 12
+            print(self.data.qvel.shape) # 10
+            print(self.data.qacc.shape) # 10
+            # print(self.model.geom('upper_arm').pos)
+            # print(self.model.geom('lower_arm').quat)
+            # print(self.model.geom('hand'))
+            # print(self.model.geom('red_sphere'))
+
+            
             """
             <MjContact
             H: array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
@@ -357,6 +368,12 @@ class ArmSim:
 
 
 if __name__ == "__main__":
+
+    if not os.path.exists('img'):
+        # create dir img
+        os.mkdir('img')
+
     rnder = ArmSim(xml)
 
     rnder.run()
+    # rnder.run_with_viewer()
