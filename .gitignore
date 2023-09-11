@@ -38,3 +38,5 @@ data
 *.csv
 
 MUJOCO_LOG.TXT
+
+img/

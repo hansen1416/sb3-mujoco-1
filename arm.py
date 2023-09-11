@@ -1,10 +1,12 @@
 import math
 import time
+import os
 
 import numpy as np
 import mujoco
 import mujoco.viewer
 from transforms3d import quaternions
+import matplotlib.pyplot as plt
 
 
 tall = 1.6
@@ -86,6 +88,28 @@ xml = """
            upper_arm_l=upper_arm_l, lower_arm_l=lower_arm_l, hand_l=hand_l, skin_color=skin_color,
            target_x=target_x, target_y=target_y, target_z=target_z,
            anchor_z=anchor_z, string_length=string_length)
+
+
+def plot_force(times, forces):
+    lines = plt.plot(times, forces)
+    plt.title('contact force')
+    plt.ylabel('Newton')
+    plt.legend(iter(lines), ('normal z', 'friction x', 'friction y'))
+
+    plt.savefig(os.path.join('img', 'forces.png'))
+    plt.clf()  # clear the figure
+    plt.close()  # close the window and release the memory
+
+
+def plot_penetration(times, penetration):
+    plt.plot(times, penetration)
+    plt.title('penetration depth')
+    plt.ylabel('millimeter')
+    plt.xlabel('second')
+
+    plt.savefig(os.path.join('img', 'penetration.png'))
+    plt.clf()  # clear the figure
+    plt.close()  # close the window and release the memory
 
 
 class ArmSim:
@@ -172,7 +196,7 @@ class ArmSim:
                 if time_until_next_step > 0:
                     time.sleep(time_until_next_step)
 
-    def run(self, n=1000):
+    def run(self, n_steps=1000):
 
         # random initial rotational velocity:
         mujoco.mj_resetData(self.model, self.data)
@@ -186,8 +210,15 @@ class ArmSim:
         print(self.data.qpos)
         print(self.data.qvel)
 
+        sim_time = np.zeros(n_steps)
+        forces = np.zeros((n_steps, 3))
+        penetration = np.zeros(n_steps)
+        forcetorque = np.zeros(6)
+
         # Close the viewer automatically after 30 wall-seconds.
-        for _ in range(n):
+        for i in range(n_steps):
+
+            sim_time[i] = self.data.time
 
             mujoco.mj_step(self.model, self.data)
 
@@ -236,13 +267,36 @@ class ArmSim:
             solref: array([0.02, 1.  ])
             solreffriction: array([0., 0.])
             >
+
+            pos: the position of the contact point in global coordinates2.
+
+            solimp: the solver parameters for the normal direction of the contact2. 
+            These are three numbers that control the stiffness, damping and friction of the contact3.
+
+            solref: the reference values for the normal direction of the contact2. 
+            These are two numbers that specify the minimum and maximum normal force that can be applied at the contact3.
+
+            solreffriction: the reference values for the tangential direction of the contact2. 
+            These are two numbers that specify the minimum and maximum friction force that can be applied at the contact3
             """
 
             if len(self.data.contact):
-                print(self.data.contact[0])
+                for j, c in enumerate(self.data.contact):
 
-            # for j,c in enumerate( self.data.contact):
-            #     print(j,c)
+                    mujoco.mj_contactForce(
+                        self.model, self.data, j, forcetorque)
+
+                    forces[i] += forcetorque[0:3]
+                    penetration[i] = min(penetration[i], c.dist)
+
+                    print('name of geom1: ', self.model.geom(c.geom1).name)
+                    print('name of geom2: ', self.model.geom(c.geom2).name)
+
+        # print(forces)
+        # print(penetration)
+
+        plot_force(sim_time, forces)
+        plot_penetration(sim_time, penetration)
 
 
 if __name__ == "__main__":
