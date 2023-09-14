@@ -7,6 +7,7 @@ import mujoco
 import mujoco.viewer
 from transforms3d import quaternions
 import matplotlib.pyplot as plt
+# from dm_control.mujoco.wrapper.mjbindings import mjlib
 
 
 tall = 1.6
@@ -71,7 +72,7 @@ xml = """
 
         <body name="target" pos="{target_x} {target_y} {target_z}">
             <joint name="free" type="free"/>
-            <geom name="red_sphere" type="sphere" size=".06" rgba="1 0 0 1"/>
+            <geom name="ball" type="sphere" size=".06" rgba="1 0 0 1"/>
             <site name="hook" pos="0. 0. 0." size=".01"/>
         </body>
 
@@ -239,7 +240,7 @@ class ArmSim:
                 if time_until_next_step > 0:
                     time.sleep(time_until_next_step)
 
-    def run(self, n_steps=1000):
+    def run(self, n_steps=100):
 
         # random initial rotational velocity:
         mujoco.mj_resetData(self.model, self.data)
@@ -263,6 +264,9 @@ class ArmSim:
         ncon = np.zeros(n_steps)
         velocity = np.zeros((n_steps, self.model.nv))
         acceleration = np.zeros((n_steps, self.model.nv))
+
+        # print(self.model.geom('upper_arm').id)
+        # print(dir(self.data))
 
         # Close the viewer automatically after 30 wall-seconds.
         for i in range(n_steps):
@@ -300,14 +304,41 @@ class ArmSim:
             acceleration[i] = self.data.qacc[:]
 
             # todo, geom views are not changing? use joint info for observations
+            # the following are observation
+            # cartesian position of upper arm, lower arm, hand and ball
+            # quaternion of upper arm, lower arm
+            # reward is 
+            # 
+
             print('---------------')
-            print(self.data.qpos.shape) # 12
-            print(self.data.qvel.shape) # 10
-            print(self.data.qacc.shape) # 10
+            # print(self.data.geom_xpos)
+
+            upper_arm_p = self.data.geom_xpos[self.model.geom('upper_arm').id]
+            lower_arm_p = self.data.geom_xpos[self.model.geom('lower_arm').id]
+            hand_p = self.data.geom_xpos[self.model.geom('hand').id]
+            ball_p = self.data.geom_xpos[self.model.geom('ball').id]
+
+            upper_arm_r = quaternions.mat2quat(self.data.geom_xmat[self.model.geom('upper_arm').id])
+            lower_arm_r = quaternions.mat2quat(self.data.geom_xmat[self.model.geom('lower_arm').id])
+
+            # observation = upper_arm_p + lower_arm_p + hand_p + ball_p + upper_arm_r + lower_arm_r
+
+            print(upper_arm_p, lower_arm_p, hand_p, ball_p, upper_arm_r, lower_arm_r)
+
+            # concatenate numpy arrays
+            observation = np.concatenate((upper_arm_p, lower_arm_p, hand_p, ball_p, upper_arm_r, lower_arm_r), axis=None)
+
+            print(observation)
+
+            # print(observation)
+            # print(dir(self.data))
+            # print(self.data.qpos.shape) # 12
+            # print(self.data.qvel.shape) # 10
+            # print(self.data.qacc.shape) # 10
             # print(self.model.geom('upper_arm').pos)
             # print(self.model.geom('lower_arm').quat)
             # print(self.model.geom('hand'))
-            # print(self.model.geom('red_sphere'))
+            # print(self.model.geom('ball'))
 
             
             """
