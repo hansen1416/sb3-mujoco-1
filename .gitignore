@@ -40,3 +40,5 @@ data
 MUJOCO_LOG.TXT
 
 img/
+logs/
+models/

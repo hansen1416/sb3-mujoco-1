@@ -36,7 +36,7 @@ from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.callbacks import BaseCallback
 from tqdm.auto import tqdm
 
-from xml import arm_xml
+from mujoco_xml import arm_xml
 
 
 def normalize(v):

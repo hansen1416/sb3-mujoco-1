@@ -9,7 +9,7 @@ from transforms3d import quaternions
 import matplotlib.pyplot as plt
 # from dm_control.mujoco.wrapper.mjbindings import mjlib
 
-from xml import arm_xml
+from mujoco_xml import arm_xml
 
 def plot_force(times, forces):
     lines = plt.plot(times, forces)
