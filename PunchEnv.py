@@ -106,9 +106,20 @@ class PunchEnv(gym.Env):
         self.current_contact_state = False
         self.ncon = 0
 
+        self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
+
+        self.viewer.cam.lookat[0] = 0  # x position
+        self.viewer.cam.lookat[1] = 0  # y position
+        self.viewer.cam.lookat[2] = 0  # z position
+        self.viewer.cam.distance = 5  # distance from the target
+        self.viewer.cam.elevation = -30  # elevation angle
+        self.viewer.cam.azimuth = 0  # azimuth angle
+
         print("__init__ called")
 
     def __del__(self):
+
+        self.viewer.exit()
         print("__del__ called")
 
     def step(self, action):
@@ -141,6 +152,9 @@ class PunchEnv(gym.Env):
             self.motion_idx = len(self.elbow_angle) - 1
         elif self.motion_idx <= 0:
             self.motion_idx = 0
+
+        # self.viewer.sync()
+
         # joint manipulation end
 
         # assemble observation

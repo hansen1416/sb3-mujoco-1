@@ -59,7 +59,7 @@ def train_agent():
             break
 
 
-def train_agent_dqn(ws):
+def train_agent_dqn():
 
     models_dir = os.path.join(os.path.dirname(
         __file__), 'models', 'punch-dqn')
@@ -95,7 +95,7 @@ def train_agent_dqn(ws):
 
         model = DQN('MlpPolicy', env, verbose=1, tensorboard_log=logdir)
 
-    TIMESTEPS = 10000
+    TIMESTEPS = 100000
     iters = 0
     while True:
         iters += 1
