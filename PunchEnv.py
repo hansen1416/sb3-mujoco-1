@@ -143,7 +143,8 @@ class PunchEnv(gym.Env):
         self.data.qpos[4] = math.radians(
             self.elbow_angle[self.motion_idx])  # w
         self.data.qvel[3] = 0
-        # print(data.qvel)
+
+        # print(self.data.qpos)
 
         if action == 1:
             self.motion_idx += 1
@@ -185,7 +186,14 @@ class PunchEnv(gym.Env):
 
         # print('--------------- acc')
         # acceleration is of shape (10,) 3 for shoulder ball joint, 1 for elbow hinge joint, 6 for sphere free joint
-        reward = np.sum(self.data.qacc[4:])
+        acc_sum = np.sum(np.absolute(self.data.qacc[4:]))
+
+        if acc_sum > 200:
+            reward = acc_sum
+        else:
+            reward = 0
+
+        # print(reward)
 
         if self.data.ncon > 0:
             self.current_contact_state = True

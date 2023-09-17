@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 from mujoco_xml import arm_xml
 
+
 def plot_force(times, forces):
     lines = plt.plot(times, forces)
     plt.title('contact force')
@@ -55,6 +56,15 @@ def plot_acceleration(times, acceleration):
     plt.close()  # close the window and release the memory
 
 
+def plot_reward(times, reward):
+    plt.plot(times, reward)
+    plt.title('reward')
+
+    plt.savefig(os.path.join('img', 'reward.png'))
+    plt.clf()  # clear the figure
+    plt.close()  # close the window and release the memory
+
+
 def plot_velocity(times, velocity):
     plt.plot(times, velocity)
     plt.title('velocity')
@@ -64,6 +74,7 @@ def plot_velocity(times, velocity):
     plt.savefig(os.path.join('img', 'velocity.png'))
     plt.clf()  # clear the figure
     plt.close()  # close the window and release the memory
+
 
 def plot_ncon(times, ncon):
     plt.plot(times, ncon)
@@ -89,7 +100,7 @@ class ArmSim:
         self.model.opt.timestep = 0.002
 
     def run_with_viewer(self):
-            
+
         mujoco.mj_kinematics(self.model, self.data)
         mujoco.mj_forward(self.model, self.data)
 
@@ -179,11 +190,11 @@ class ArmSim:
 
         forces = np.zeros((n_steps, 3))
         penetration = np.zeros(n_steps)
-        
 
         ncon = np.zeros(n_steps)
         velocity = np.zeros((n_steps, self.model.nv))
         acceleration = np.zeros((n_steps, self.model.nv))
+        reward = np.zeros(n_steps)
 
         # print(self.model.geom('upper_arm').id)
         # print(dir(self.data))
@@ -222,13 +233,14 @@ class ArmSim:
             ncon[i] = self.data.ncon
             velocity[i] = self.data.qvel[:]
             acceleration[i] = self.data.qacc[:]
+            reward[i] = np.sum(np.absolute(self.data.qacc[4:]))
 
             # todo, geom views are not changing? use joint info for observations
             # the following are observation
             # cartesian position of upper arm, lower arm, hand and ball
             # quaternion of upper arm, lower arm
-            # reward is 
-            # 
+            # reward is
+            #
 
             print('--------------- acc')
             print(self.data.qacc[4:])
@@ -238,11 +250,14 @@ class ArmSim:
             hand_p = self.data.geom_xpos[self.model.geom('hand').id]
             ball_p = self.data.geom_xpos[self.model.geom('ball').id]
 
-            upper_arm_r = quaternions.mat2quat(self.data.geom_xmat[self.model.geom('upper_arm').id])
-            lower_arm_r = quaternions.mat2quat(self.data.geom_xmat[self.model.geom('lower_arm').id])
+            upper_arm_r = quaternions.mat2quat(
+                self.data.geom_xmat[self.model.geom('upper_arm').id])
+            lower_arm_r = quaternions.mat2quat(
+                self.data.geom_xmat[self.model.geom('lower_arm').id])
 
             # concatenate numpy arrays
-            observation = np.concatenate((upper_arm_p, lower_arm_p, hand_p, ball_p, upper_arm_r, lower_arm_r), axis=None)
+            observation = np.concatenate(
+                (upper_arm_p, lower_arm_p, hand_p, ball_p, upper_arm_r, lower_arm_r), axis=None)
 
             print('--------------- observation')
             print(observation)
@@ -257,7 +272,6 @@ class ArmSim:
             # print(self.model.geom('hand'))
             # print(self.model.geom('ball'))
 
-            
             """
             <MjContact
             H: array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
@@ -311,6 +325,7 @@ class ArmSim:
         plot_normal_force(sim_time, forces[:, 0])
         plot_penetration(sim_time, penetration)
         plot_acceleration(sim_time, acceleration)
+        plot_reward(sim_time, reward)
         plot_velocity(sim_time, velocity)
         plot_ncon(sim_time, ncon)
 
@@ -323,5 +338,5 @@ if __name__ == "__main__":
 
     rnder = ArmSim(arm_xml)
 
-    rnder.run(10)
+    rnder.run(1000)
     # rnder.run_with_viewer()
