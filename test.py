@@ -20,6 +20,7 @@ class myEnv(MujocoEnv):
             model_path,
             frame_skip,
             observation_space,
+            render_mode="human"
         )
 
     def reset_model(self):
@@ -47,4 +48,7 @@ if __name__ == "__main__":
 
     )
 
-    check_env(env)
+    # check_env(env)
+
+    while True:
+        env.render()

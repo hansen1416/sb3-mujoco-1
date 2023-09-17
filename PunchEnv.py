@@ -124,6 +124,8 @@ class PunchEnv(gym.Env):
 
     def step(self, action):
 
+        # print(action)
+
         # print(self.data.qpos)
         # print(self.data.qvel)
 
@@ -221,9 +223,34 @@ class PunchEnv(gym.Env):
         info = {}
         return observation, info
 
+    def render(self, mode="human"):
+
+        if mode == "human":
+
+            self.viewer.sync()
+
+    def close(self):
+
+        self.viewer.close()
+
 
 if __name__ == "__main__":
 
     env = PunchEnv()
 
     check_env(env)
+
+    env.reset()
+
+    for _ in range(10000):
+
+        # Take a random action
+        action = env.action_space.sample()
+        obs, reward, done, truncate, info = env.step(action)
+
+        env.render()
+
+        if done == True:
+            break
+
+    env.close()
