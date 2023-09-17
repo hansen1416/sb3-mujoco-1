@@ -119,7 +119,7 @@ class PunchEnv(gym.Env):
 
     def __del__(self):
 
-        self.viewer.exit()
+        # self.viewer.exit()
         print("__del__ called")
 
     def step(self, action):
