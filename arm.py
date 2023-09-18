@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 # from dm_control.mujoco.wrapper.mjbindings import mjlib
 
 from mujoco_xml import arm_xml
+from utils.functions import point_distance
 
 
 def plot_force(times, forces):
@@ -96,10 +97,6 @@ def plot_distance(times, distances):
     plt.savefig(os.path.join('img', 'distance.png'))
     plt.clf()  # clear the figure
     plt.close()  # close the window and release the memory
-
-
-def point_distance(p1, p2):
-    return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2 + (p1[2] - p2[2])**2)
 
 
 class ArmSim:

@@ -37,17 +37,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 from tqdm.auto import tqdm
 
 from mujoco_xml import arm_xml
-
-
-def normalize(v):
-    norm = np.linalg.norm(v)
-    if norm == 0:
-        return v
-    return v / norm
-
-
-def point_distance(p1, p2):
-    return math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2 + (p1.z - p2.z)**2)
+from utils.functions import normalize, point_distance
 
 
 class ProgressBarCallback(BaseCallback):
@@ -212,10 +202,9 @@ class PunchEnv(gym.Env):
         # todo penalize small distance touching,
         if acc_sum > 200 and self.accu_distance >= 0.3:
             reward = acc_sum
+            # print(reward)
         else:
             reward = 0
-
-        # print(reward)
 
         if self.data.ncon > 0:
             self.current_contact_state = True
@@ -283,7 +272,7 @@ if __name__ == "__main__":
 
     env.reset()
 
-    for _ in range(10000):
+    for _ in range(40000):
 
         # Take a random action
         action = env.action_space.sample()

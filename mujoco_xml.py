@@ -11,6 +11,9 @@ upper_arm_l = 0.4
 lower_arm_l = 0.4
 hand_l = 0.14
 
+stiffness = 0.0
+damping = 0.0
+
 skin_color = '0.8 0.6 0.4 1'
 
 string_length = 0.4
@@ -67,7 +70,7 @@ arm_xml = """
     </worldbody>
 
     <tendon>
-        <spatial name="wire" limited="true" range="0 {string_length}" width="0.003" stiffness="0.5" damping="0.5">
+        <spatial name="wire" limited="true" range="0 {string_length}" width="0.003" stiffness="{stiffness}" damping="{damping}">
         <site site="anchor"/>
         <site site="hook"/>
         </spatial>
@@ -75,5 +78,5 @@ arm_xml = """
 </mujoco>
 """.format(tall=tall, left_shouder=left_shouder, right_shouder=right_shouder,
            upper_arm_l=upper_arm_l, lower_arm_l=lower_arm_l, hand_l=hand_l, skin_color=skin_color,
-           target_x=target_x, target_y=target_y, target_z=target_z,
-           anchor_z=anchor_z, string_length=string_length)
+           target_x=target_x, target_y=target_y, target_z=target_z, anchor_z=anchor_z,
+           string_length=string_length, stiffness=stiffness, damping=damping)

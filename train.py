@@ -107,7 +107,7 @@ def train_agent_dqn():
 
         model.save(f"{models_dir}/{last_iter+TIMESTEPS * iters}")
 
-        if iters > 3:
+        if iters > 4:
             break
 
 
