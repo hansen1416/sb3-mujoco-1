@@ -67,7 +67,7 @@ arm_xml = """
     </worldbody>
 
     <tendon>
-        <spatial name="wire" limited="true" range="0 {string_length}" width="0.003">
+        <spatial name="wire" limited="true" range="0 {string_length}" width="0.003" stiffness="0.5" damping="0.5">
         <site site="anchor"/>
         <site site="hook"/>
         </spatial>

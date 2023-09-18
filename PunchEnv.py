@@ -46,6 +46,10 @@ def normalize(v):
     return v / norm
 
 
+def point_distance(p1, p2):
+    return math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2 + (p1.z - p2.z)**2)
+
+
 class ProgressBarCallback(BaseCallback):
     """
     :param pbar: (tqdm.pbar) Progress bar object
@@ -106,14 +110,14 @@ class PunchEnv(gym.Env):
         self.current_contact_state = False
         self.ncon = 0
 
-        self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
+        self.viewer = None
 
-        self.viewer.cam.lookat[0] = 0  # x position
-        self.viewer.cam.lookat[1] = 0  # y position
-        self.viewer.cam.lookat[2] = 0  # z position
-        self.viewer.cam.distance = 5  # distance from the target
-        self.viewer.cam.elevation = -30  # elevation angle
-        self.viewer.cam.azimuth = 0  # azimuth angle
+        # previous position of the hand, used to calculate the distance traveled and the direction of current step
+        self.prev_position = None
+        # previous direction of the hand, if the direction changes, zero to accu_distance
+        self.prev_direction = None
+        # the accumulated distance traveled by the hand in one direction
+        self.accu_distance = 0
 
         print("__init__ called")
 
@@ -182,13 +186,31 @@ class PunchEnv(gym.Env):
         # print('--------------- observation')
         # print(observation)
 
-        # reward is
+        hand_pos = self.data.geom_xpos[self.model.geom('hand').id].tolist()[
+            :]
 
-        # print('--------------- acc')
-        # acceleration is of shape (10,) 3 for shoulder ball joint, 1 for elbow hinge joint, 6 for sphere free joint
+        if self.prev_position is not None:
+
+            distance = point_distance(hand_pos, self.prev_position)
+
+            current_direction = hand_pos[0] - self.prev_position[0] > 0
+
+            # print(current_direction)
+            # print(hand_pos[0], self.prev_position[0])
+
+            if self.prev_direction is not None and current_direction == self.prev_direction:
+                self.accu_distance += distance
+            else:
+                self.accu_distance = distance
+
+            self.prev_direction = current_direction
+
+        self.prev_position = hand_pos[:]
+
         acc_sum = np.sum(np.absolute(self.data.qacc[4:]))
-
-        if acc_sum > 200:
+        # reward is
+        # todo penalize small distance touching,
+        if acc_sum > 200 and self.accu_distance >= 0.3:
             reward = acc_sum
         else:
             reward = 0
@@ -232,6 +254,17 @@ class PunchEnv(gym.Env):
         return observation, info
 
     def render(self, mode="human"):
+
+        if self.viewer is None:
+
+            self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
+
+            self.viewer.cam.lookat[0] = 0  # x position
+            self.viewer.cam.lookat[1] = 0  # y position
+            self.viewer.cam.lookat[2] = 0  # z position
+            self.viewer.cam.distance = 5  # distance from the target
+            self.viewer.cam.elevation = -30  # elevation angle
+            self.viewer.cam.azimuth = 0  # azimuth angle
 
         if mode == "human":
 

@@ -87,6 +87,21 @@ def plot_ncon(times, ncon):
     plt.close()  # close the window and release the memory
 
 
+def plot_distance(times, distances):
+    plt.plot(times, distances)
+    plt.title('distance traveled')
+    plt.ylabel('meter')
+    plt.xlabel('second')
+
+    plt.savefig(os.path.join('img', 'distance.png'))
+    plt.clf()  # clear the figure
+    plt.close()  # close the window and release the memory
+
+
+def point_distance(p1, p2):
+    return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2 + (p1[2] - p2[2])**2)
+
+
 class ArmSim:
 
     def __init__(self, xml) -> None:
@@ -195,6 +210,14 @@ class ArmSim:
         velocity = np.zeros((n_steps, self.model.nv))
         acceleration = np.zeros((n_steps, self.model.nv))
         reward = np.zeros(n_steps)
+        distances = np.zeros(n_steps)
+
+        # previous position of the hand, used to calculate the distance traveled and the direction of current step
+        self.prev_position = None
+        # previous direction of the hand, if the direction changes, zero to accu_distance
+        self.prev_direction = None
+        # the accumulated distance traveled by the hand in one direction
+        self.accu_distance = 0
 
         # print(self.model.geom('upper_arm').id)
         # print(dir(self.data))
@@ -242,8 +265,8 @@ class ArmSim:
             # reward is
             #
 
-            print('--------------- acc')
-            print(self.data.qacc[4:])
+            # print('--------------- acc')
+            # print(self.data.qacc[4:])
 
             upper_arm_p = self.data.geom_xpos[self.model.geom('upper_arm').id]
             lower_arm_p = self.data.geom_xpos[self.model.geom('lower_arm').id]
@@ -259,8 +282,31 @@ class ArmSim:
             observation = np.concatenate(
                 (upper_arm_p, lower_arm_p, hand_p, ball_p, upper_arm_r, lower_arm_r), axis=None)
 
-            print('--------------- observation')
-            print(observation)
+            # print('--------------- observation')
+            # print(observation)
+
+            hand_pos = self.data.geom_xpos[self.model.geom('hand').id].tolist()[
+                :]
+
+            if self.prev_position is not None:
+
+                distance = point_distance(hand_pos, self.prev_position)
+
+                current_direction = hand_pos[0] - self.prev_position[0] > 0
+
+                # print(current_direction)
+                # print(hand_pos[0], self.prev_position[0])
+
+                if self.prev_direction is not None and current_direction == self.prev_direction:
+                    self.accu_distance += distance
+                else:
+                    self.accu_distance = distance
+
+                self.prev_direction = current_direction
+
+            self.prev_position = hand_pos[:]
+
+            distances[i] = self.accu_distance
 
             # print(observation)
             # print(dir(self.data))
@@ -328,6 +374,7 @@ class ArmSim:
         plot_reward(sim_time, reward)
         plot_velocity(sim_time, velocity)
         plot_ncon(sim_time, ncon)
+        plot_distance(sim_time, distances)
 
 
 if __name__ == "__main__":
