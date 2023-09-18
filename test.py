@@ -10,7 +10,7 @@ from PunchEnv import PunchEnv
 # env = BounceEnv(ws_connection=ws)
 # env.reset()
 
-model = PPO.load("models/punch-ppo/1600000.zip")
+model = PPO.load("models/punch-ppo/100000.zip")
 
 # print(model)
 env = PunchEnv()
@@ -23,10 +23,8 @@ if __name__ == "__main__":
     while True:
         action, _ = model.predict(obs)
 
-        print(action)
-
         obs, rewards, dones, truncate, info = env.step(action)
 
         env.render()
 
-        # print(rewards)
+        print("action: {}, reward: {}".format(action, rewards))

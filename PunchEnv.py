@@ -198,13 +198,13 @@ class PunchEnv(gym.Env):
         self.prev_position = hand_pos[:]
 
         acc_sum = np.sum(np.absolute(self.data.qacc[4:]))
+
+        reward = self.accu_distance
         # reward is
         # todo penalize small distance touching,
         if acc_sum > 200 and self.accu_distance >= 0.3:
-            reward = acc_sum
+            reward += acc_sum
             # print(reward)
-        else:
-            reward = 0
 
         if self.data.ncon > 0:
             self.current_contact_state = True
