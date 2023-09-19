@@ -1,16 +1,24 @@
-from stable_baselines3 import PPO, DQN
+from stable_baselines3 import PPO, DQN, A2C
 import os
 from pathlib import Path
-
+import time
 
 from PunchEnv import PunchEnv, ProgressBarManager
 
 
-def train_agent():
+def train_agent(algorithm=PPO):
+
+    algorithm_name = ""
+
+    if algorithm.__name__ == 'PPO':
+        algorithm_name = 'PPO'
+    elif algorithm.__name__ == 'DQN':
+        algorithm_name = 'DQN'
 
     models_dir = os.path.join(os.path.dirname(
-        __file__), 'models', 'punch-ppo')
-    logdir = os.path.join(os.path.dirname(__file__), 'logs', 'punch-ppo')
+        __file__), 'models', 'punch-' + algorithm_name + '-' + time.strftime("%Y%m%d-%H%M%S"))
+    logdir = os.path.join(os.path.dirname(
+        __file__), 'logs', 'punch-' + algorithm_name + '-' + time.strftime("%Y%m%d-%H%M%S"))
 
     if not os.path.exists(models_dir):
         os.makedirs(models_dir)
@@ -33,15 +41,15 @@ def train_agent():
         # get last iteration
         last_iter = int(os.path.splitext(last_model.name)[0])
 
-        last_model = PPO.load(last_model, env, verbose=1,
-                              tensorboard_log=logdir)
+        last_model = algorithm.load(last_model, env, verbose=1,
+                                    tensorboard_log=logdir)
 
     if last_model:
         model = last_model
     else:
 
         # model = PPO('MultiInputPolicy', env, verbose=1, tensorboard_log=logdir)
-        model = PPO('MlpPolicy', env, verbose=1, tensorboard_log=logdir)
+        model = algorithm('MlpPolicy', env, verbose=1, tensorboard_log=logdir)
 
     TIMESTEPS = 100000
     iters = 0
@@ -55,10 +63,10 @@ def train_agent():
 
         model.save(f"{models_dir}/{last_iter+TIMESTEPS * iters}")
 
-        if iters > 5:
+        if iters > 4:
             break
 
 
 if __name__ == "__main__":
 
-    train_agent()
+    train_agent(algorithm=DQN)

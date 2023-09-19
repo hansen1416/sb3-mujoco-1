@@ -10,7 +10,7 @@ from PunchEnv import PunchEnv
 # env = BounceEnv(ws_connection=ws)
 # env.reset()
 
-model = PPO.load("models/punch-ppo/300000.zip")
+model = DQN.load("models/punch-algorithm-20230919-150230/500000.zip")
 
 # print(model)
 env = PunchEnv()

@@ -88,8 +88,8 @@ class PunchEnv(gym.Env):
             low=-1.0, high=1.0, shape=(20,), dtype=float)
 
         # todo this is linear speed, add acceleration
-        self.shoulder_angle = np.linspace(10, 86, 100)
-        self.elbow_angle = np.linspace(110, 0, 100)
+        self.shoulder_angle = np.linspace(10, 86, 10)
+        self.elbow_angle = np.linspace(110, 0, 10)
         self.motion_idx = 0
         self.direction = 1
 
@@ -117,6 +117,7 @@ class PunchEnv(gym.Env):
         print("__del__ called")
 
     def step(self, action):
+        # todo preset 3 punch movement, and let agent choose among, idle, punch1, punch2, punch3
 
         # print(action)
 
@@ -199,7 +200,8 @@ class PunchEnv(gym.Env):
 
         acc_sum = np.sum(np.absolute(self.data.qacc[4:]))
 
-        reward = self.accu_distance
+        # reward = self.accu_distance
+        reward = 0
         # reward is
         # todo penalize small distance touching,
         if acc_sum > 200 and self.accu_distance >= 0.3:
