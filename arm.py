@@ -116,11 +116,7 @@ class ArmSim:
         mujoco.mj_kinematics(self.model, self.data)
         mujoco.mj_forward(self.model, self.data)
 
-        # todo this is linear speed, add acceleration
-        shoulder_angle = np.linspace(10, 86, 100)
-        elbow_angle = np.linspace(110, 0, 100)
-        motion_idx = 0
-        direction = 1
+        cnt = 0
 
         with mujoco.viewer.launch_passive(self.model, self.data) as viewer:
 
@@ -141,35 +137,17 @@ class ArmSim:
             # Close the viewer automatically after 30 wall-seconds.
             start = time.time()
 
-            while viewer.is_running() and time.time() - start < 5:
+            while viewer.is_running() and time.time() - start < 20:
 
                 step_start = time.time()
 
                 mujoco.mj_step(self.model, self.data)
 
                 # joint manipulation start
-
-                q = quaternions.axangle2quat(
-                    [0, 1, 0], math.radians(shoulder_angle[motion_idx]), is_normalized=True)
-
-                self.data.qpos[0] = q[0]  # w
-                self.data.qpos[1] = q[1]  # x
-                self.data.qpos[2] = q[2]  # y
-                self.data.qpos[3] = q[3]  # z
-
-                self.data.qpos[4] = math.radians(elbow_angle[motion_idx])  # w
-                self.data.qvel[3] = 0
-                # print(data.qvel)
-
-                if direction == 1:
-                    motion_idx += 1
+                if cnt < 100:
+                    self.data.qvel[1] = 10
                 else:
-                    motion_idx -= 1
-
-                if motion_idx >= len(elbow_angle) - 1:
-                    direction *= -1
-                elif motion_idx <= 0:
-                    direction *= -1
+                    self.data.qvel[1] = 0
 
                 # joint manipulation end
 
@@ -182,6 +160,8 @@ class ArmSim:
 
                 if time_until_next_step > 0:
                     time.sleep(time_until_next_step)
+
+                cnt += 1
 
     def run(self, n_steps=100):
 
@@ -382,5 +362,5 @@ if __name__ == "__main__":
 
     rnder = ArmSim(arm_xml)
 
-    rnder.run(1000)
-    # rnder.run_with_viewer()
+    # rnder.run(1000)
+    rnder.run_with_viewer()

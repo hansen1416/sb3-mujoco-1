@@ -41,19 +41,19 @@ arm_xml = """
                 pos="0 0 0" rgba="1 1 1 1"/>
 
             <!-- Shoulder joint -->
-            <body pos="0. 0.55 {tall}" gravcomp="1">
+            <body pos="0. 0.55 {tall}">
                 <joint name="shoulder" type="ball" pos="0 0 0"/>
                 <geom name="upper_arm" type="cylinder" fromto="0 0. 0. 0 0. -{upper_arm_l}" size="0.1" 
                 rgba="{skin_color}"/>
 
                 <!-- Elbow joint -->
-                <body pos="0. 0. -0.6" gravcomp="1">
+                <body pos="0. 0. -0.6">
                     <joint name="elbow" type="hinge" pos="0 0 0.1" axis="0 1 0"/>
                     <geom name="lower_arm" type="cylinder"  fromto="0 0 0. 0 0 -{lower_arm_l}" size=".08" 
                     pos="0 0 0" rgba="{skin_color}"/>
 
                     <!-- Hand -->
-                    <body pos="0. 0. -{lower_arm_l}" gravcomp="1">
+                    <body pos="0. 0. -{lower_arm_l}">
                         <geom name="hand" type="cylinder" fromto="0 0 0.0 0 0 -{hand_l}" size="0.09" 
                         pos="0 0 0" rgba="{skin_color}"/>
                     </body>
