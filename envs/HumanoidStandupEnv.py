@@ -308,7 +308,8 @@ class HumanoidStandupEnv(MujocoEnv, utils.EzPickle):
     def reset_model(self):
         c = 0.01
         self.set_state(
-            self.init_qpos + self.np_random.uniform(low=-c, high=c, size=self.model.nq),
+            self.init_qpos +
+            self.np_random.uniform(low=-c, high=c, size=self.model.nq),
             self.init_qvel
             + self.np_random.uniform(
                 low=-c,

@@ -1,6 +1,7 @@
 from stable_baselines3.common.callbacks import BaseCallback
 from tqdm.auto import tqdm
 
+
 class TensorboardCallback(BaseCallback):
     """
     Custom callback for plotting additional values in tensorboard.
@@ -10,9 +11,9 @@ class TensorboardCallback(BaseCallback):
         super().__init__(verbose)
 
     def _on_step(self) -> bool:
-        # Log scalar value (here a random variable)
 
-        self.logger.record("step_reward", self.reward)
+        self.logger.record("step_reward", self.locals['rewards'][0])
+
         return True
 
 
