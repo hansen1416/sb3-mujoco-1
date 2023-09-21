@@ -42,3 +42,6 @@ MUJOCO_LOG.TXT
 img/
 logs/
 models/
+
+mjmodel.mjb
+MJDATA.TXT

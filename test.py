@@ -4,7 +4,7 @@ import numpy as np
 from stable_baselines3 import PPO, DQN
 
 from mujoco_xml import arm_xml
-from PunchEnv import PunchEnv
+from envs.PunchEnv import PunchEnv
 
 
 # env = BounceEnv(ws_connection=ws)

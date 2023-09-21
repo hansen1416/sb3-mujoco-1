@@ -1,9 +1,8 @@
-from stable_baselines3 import PPO, DQN, A2C
+from stable_baselines3 import PPO, DQN
 import os
 from pathlib import Path
-import time
 
-from PunchEnv import PunchEnv, ProgressBarManager
+from lib.Callbacks import TensorboardCallback
 
 
 def train_agent(env, algorithm=PPO):
@@ -48,13 +47,16 @@ def train_agent(env, algorithm=PPO):
 
     TIMESTEPS = 100000
     iters = 0
+
+    tensorboard_callback = TensorboardCallback()
+
     while True:
         iters += 1
 
-        with ProgressBarManager(TIMESTEPS) as progress_callback:
-            model.learn(total_timesteps=TIMESTEPS,
-                        reset_num_timesteps=False, tb_log_name=f"{last_iter+TIMESTEPS * iters}",
-                        callback=[progress_callback])
+        # with ProgressBarManager(TIMESTEPS) as progress_callback:
+        model.learn(total_timesteps=TIMESTEPS,
+                    reset_num_timesteps=False, tb_log_name=f"{last_iter+TIMESTEPS * iters}",
+                    callback=[tensorboard_callback])
 
         model.save(f"{models_dir}/{last_iter+TIMESTEPS * iters}")
 
@@ -64,7 +66,8 @@ def train_agent(env, algorithm=PPO):
 
 if __name__ == "__main__":
 
+    from envs.PunchEnv import PunchEnv
+
     env = PunchEnv()
 
     train_agent(env, algorithm=DQN)
-
