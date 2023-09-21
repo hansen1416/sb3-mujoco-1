@@ -2,8 +2,8 @@
 
 from stable_baselines3 import PPO
 
-from train import train_agent
 from envs.HumanoidStandupEnv import HumanoidStandupEnv
+from utils.functions import train_agent
 
 """
 learning_rate: Union[float, Schedule] = 3e-4,
@@ -30,10 +30,9 @@ device: Union[th.device, str] = "auto",
 _init_setup_model: bool = True,
 """
 
-def test():
+def test(model_path="models/CustomHumanoidStandupEnv-PPO/1500000.zip"):
 
-    model = PPO.load(
-        "models/CustomHumanoidStandupEnv-PPO/1500000.zip")
+    model = PPO.load(model_path)
 
     # print(model)
     env = HumanoidStandupEnv(render_mode="human")
