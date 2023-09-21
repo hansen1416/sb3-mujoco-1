@@ -1,10 +1,15 @@
+import os
+import time
+from pathlib import Path
+
 import gymnasium as gym
+from gymnasium.envs.mujoco.humanoid_v4 import HumanoidEnv
+from gymnasium.envs.mujoco.humanoidstandup_v4 import HumanoidStandupEnv
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.evaluation import evaluate_policy
 
-
-from gymnasium.envs.mujoco.humanoid_v4 import HumanoidEnv
+from train import train_agent
 
 
 class CustomHumanoidEnv(HumanoidEnv):
@@ -18,16 +23,15 @@ class CustomHumanoidEnv(HumanoidEnv):
         return super().render(**kwargs)
 
 
-def train():
-    env = gym.make('Humanoid-v4')
+class CustomHumanoidStandupEnv(HumanoidStandupEnv):
+    def __init__(self, render_mode='rgb_array', **kwargs):
+        super().__init__(**kwargs)
+        self.render_mode = render_mode
 
-    env = DummyVecEnv([lambda: env])
-
-    model = PPO('MlpPolicy', env, verbose=1)
-    model.learn(total_timesteps=1000000)
-
-    mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=10)
-    print(f"Mean reward: {mean_reward} +/- {std_reward}")
+    def render(self, mode='rgb_array', **kwargs):
+        if mode == 'human':
+            self.render_mode = mode
+        return super().render(**kwargs)
 
 
 def demo():
@@ -51,5 +55,29 @@ def demo():
             obs = env.reset()
 
 
+def test():
+
+    model = PPO.load(
+        "models/CustomHumanoidStandupEnv-PPO/1500000.zip")
+
+    # print(model)
+    env = CustomHumanoidStandupEnv(render_mode="human")
+    obs, _ = env.reset()
+
+    # print(obs)
+    while True:
+        action, _ = model.predict(obs)
+
+        obs, rewards, dones, truncate, info = env.step(action)
+
+        env.render()
+
+        print("action: {}, reward: {}".format(action, rewards))
+
+
 if __name__ == "__main__":
-    demo()
+    # demo()
+
+    # train_agent(CustomHumanoidStandupEnv(), algorithm=PPO)
+
+    test()

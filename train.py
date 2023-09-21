@@ -6,19 +6,15 @@ import time
 from PunchEnv import PunchEnv, ProgressBarManager
 
 
-def train_agent(algorithm=PPO):
+def train_agent(env, algorithm=PPO):
 
-    algorithm_name = ""
-
-    if algorithm.__name__ == 'PPO':
-        algorithm_name = 'PPO'
-    elif algorithm.__name__ == 'DQN':
-        algorithm_name = 'DQN'
+    env_name = env.__class__.__name__
+    algorithm_name = algorithm.__name__
 
     models_dir = os.path.join(os.path.dirname(
-        __file__), 'models', 'punch-' + algorithm_name + '-' + time.strftime("%Y%m%d-%H%M%S"))
+        __file__), 'models', env_name + '-' + algorithm_name)
     logdir = os.path.join(os.path.dirname(
-        __file__), 'logs', 'punch-' + algorithm_name + '-' + time.strftime("%Y%m%d-%H%M%S"))
+        __file__), 'logs', env_name + '-' + algorithm_name)
 
     if not os.path.exists(models_dir):
         os.makedirs(models_dir)
@@ -31,7 +27,6 @@ def train_agent(algorithm=PPO):
     last_model = None
     last_iter = 0
 
-    env = PunchEnv()
     env.reset()
 
     if len(paths) > 0:
@@ -69,4 +64,7 @@ def train_agent(algorithm=PPO):
 
 if __name__ == "__main__":
 
-    train_agent(algorithm=DQN)
+    env = PunchEnv()
+
+    train_agent(env, algorithm=DQN)
+
