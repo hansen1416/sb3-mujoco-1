@@ -3,7 +3,7 @@
 from stable_baselines3 import PPO
 
 from envs.HumanoidStandupEnv import HumanoidStandupEnv
-from utils.functions import train_agent
+from utils.functions import train_agent, linear_schedule
 
 """
 learning_rate: Union[float, Schedule] = 3e-4,
@@ -30,6 +30,7 @@ device: Union[th.device, str] = "auto",
 _init_setup_model: bool = True,
 """
 
+
 def test(model_path="models/CustomHumanoidStandupEnv-PPO/1500000.zip"):
 
     model = PPO.load(model_path)
@@ -52,6 +53,8 @@ def test(model_path="models/CustomHumanoidStandupEnv-PPO/1500000.zip"):
 if __name__ == "__main__":
     # demo()
 
-    train_agent(HumanoidStandupEnv(), algorithm=PPO)
+    train_agent(HumanoidStandupEnv(), algorithm=PPO, params={
+        "learning_rate": linear_schedule(0.001),
+    })
 
     # test()
