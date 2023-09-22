@@ -10,6 +10,7 @@ from stable_baselines3 import PPO
 from envs.HumanoidStandupEnv import HumanoidStandupEnv
 from utils.functions import train_agent, linear_schedule
 from lib.Callbacks import TensorboardCallback
+from stable_baselines3.common.evaluation import evaluate_policy
 
 
 def test(model_path="models/CustomHumanoidStandupEnv-PPO/1500000.zip"):
@@ -83,8 +84,8 @@ if __name__ == "__main__":
     last_model = None
     last_iter = 0
 
-    env = Monitor(env)
-    env = DummyVecEnv([lambda: env])
+    # env = Monitor(env)
+    # env = DummyVecEnv([lambda: env])
     env.reset()
 
     if len(paths) > 0:
@@ -104,29 +105,40 @@ if __name__ == "__main__":
         model = algorithm('MlpPolicy', env, verbose=1,
                           tensorboard_log=logdir, **params)
 
-    TIMESTEPS = 10000
+    TIMESTEPS = 1000
 
     # tensorboard_callback = TensorboardCallback()
     # Create the callback object
-    eval_callback = EvalCallback(eval_env=env,
-                                 best_model_save_path=models_dir,
-                                 log_path=logdir,
-                                 eval_freq=1000,
-                                 #  deterministic=True,
-                                 render=False
-                                 )
+    # eval_callback = EvalCallback(eval_env=env,
+    #                              best_model_save_path=models_dir,
+    #                              log_path=logdir,
+    #                              eval_freq=100,
+    #                              #  deterministic=True,
+    #                              render=False
+    #                              )
+
 
     # with ProgressBarManager(TIMESTEPS) as progress_callback:
     model.learn(total_timesteps=TIMESTEPS,
                 reset_num_timesteps=False,
                 tb_log_name=f"{last_iter+TIMESTEPS}",
                 # callback=[tensorboard_callback, eval_callback]
-                callback=[eval_callback]
+                # callback=[eval_callback]
                 )
+    
+    policy = model.policy
+    # Retrieve the environment
+    env = model.get_env()
+    # Evaluate the policy
+    mean_reward, std_reward = evaluate_policy(policy, env, n_eval_episodes=10, deterministic=True)
 
-    model.save(f"{models_dir}/{last_iter + TIMESTEPS}.zip")
+    print(f"mean_reward={mean_reward:.2f} +/- {std_reward}")
 
-    print(eval_callback.best_mean_reward)
-    print(eval_callback.last_mean_reward)
+    # reward_list_base, episode_list_base = evaluate_policy(BasePolicy, model.get_env(), n_eval_episodes=10, return_episode_rewards=True)
+
+    # model.save(f"{models_dir}/{last_iter + TIMESTEPS}.zip")
+
+    # print(eval_callback.best_mean_reward)
+    # print(eval_callback.last_mean_reward)
 
     # test()
