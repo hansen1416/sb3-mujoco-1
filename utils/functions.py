@@ -6,6 +6,8 @@ from typing import Callable
 import numpy as np
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.vec_env import DummyVecEnv
+
 
 from lib.Callbacks import TensorboardCallback
 
@@ -42,6 +44,8 @@ def train_agent(env, algorithm, params={}):
     last_model = None
     last_iter = 0
 
+    env = Monitor(env)
+    env = DummyVecEnv([lambda: env])
     env.reset()
 
     if len(paths) > 0:
@@ -52,32 +56,30 @@ def train_agent(env, algorithm, params={}):
         last_iter = int(os.path.splitext(last_model.name)[0])
 
         last_model = algorithm.load(last_model, env, verbose=1,
-                                    tensorboard_log=logdir)
+                                    tensorboard_log=logdir, **params)
 
     if last_model:
         model = last_model
     else:
-
         # model = PPO('MultiInputPolicy', env, verbose=1, tensorboard_log=logdir)
         model = algorithm('MlpPolicy', env, verbose=1,
                           tensorboard_log=logdir, **params)
 
     TIMESTEPS = 100000
-    # iters = 0
 
     tensorboard_callback = TensorboardCallback()
     # Create the callback object
-    eval_callback = EvalCallback(eval_env=Monitor(env), best_model_save_path=models_dir,
+    eval_callback = EvalCallback(eval_env=env, best_model_save_path=models_dir,
                                  log_path=logdir, eval_freq=1000,
                                  deterministic=True, render=False)
 
     # with ProgressBarManager(TIMESTEPS) as progress_callback:
     model.learn(total_timesteps=TIMESTEPS,
-                reset_num_timesteps=False, 
-                # tb_log_name=f"{last_iter+TIMESTEPS * iters}",
-                callback=[tensorboard_callback, eval_callback])
+                reset_num_timesteps=False,
+                tb_log_name=f"{last_iter+TIMESTEPS}",
+                callback=[tensorboard_callback])
 
-    model.save(f"{models_dir}")
+    model.save(f"{models_dir}/{last_iter + TIMESTEPS}.zip")
 
 
 def linear_schedule(initial_value: float) -> Callable[[float], float]:
