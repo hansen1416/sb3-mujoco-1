@@ -1,45 +1,14 @@
 import time
+import os
+
 import numpy as np
 import mujoco
 import mujoco.viewer
 
+# model_path = os.path.join('assets', 'humanoidstandup.xml')
+model_path = os.path.join('assets', 'humanoid.xml')
 
-chaotic_pendulum = """
-<mujoco>
-  <option timestep=".001">
-    <flag energy="enable" contact="disable"/>
-  </option>
-
-  <default>
-    <joint type="hinge" axis="0 -1 0"/>
-    <geom type="capsule" size=".02"/>
-  </default>
-
-  <worldbody>
-    <light pos="0 -.4 1"/>
-    <camera name="fixed" pos="0 -1 0" xyaxes="1 0 0 0 0 1"/>
-    <body name="0" pos="0 0 .2">
-      <joint name="root"/>
-      <geom fromto="-.2 0 0 .2 0 0" rgba="1 1 0 1"/>
-      <geom fromto="0 0 0 0 0 -.25" rgba="1 1 0 1"/>
-      <body name="1" pos="-.2 0 0">
-        <joint/>
-        <geom fromto="0 0 0 0 0 -.2" rgba="1 0 0 1"/>
-      </body>
-      <body name="2" pos=".2 0 0">
-        <joint/>
-        <geom fromto="0 0 0 0 0 -.2" rgba="0 1 0 1"/>
-      </body>
-      <body name="3" pos="0 0 -.25">
-        <joint/>
-        <geom fromto="0 0 0 0 0 -.2" rgba="0 0 1 1"/>
-      </body>
-    </body>
-  </worldbody>
-</mujoco>
-"""
-
-model = mujoco.MjModel.from_xml_string(chaotic_pendulum)
+model = mujoco.MjModel.from_xml_path(model_path)
 data = mujoco.MjData(model)
 
 
@@ -55,6 +24,8 @@ PERTURBATION = 1e-7
 SIM_DURATION = 10  # seconds
 NUM_REPEATS = 8
 
+# Close the viewer automatically after 30 wall-seconds.
+start = time.time()
 
 with mujoco.viewer.launch_passive(model, data) as viewer:
 
@@ -67,13 +38,8 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
     viewer.cam.azimuth = 90  # azimuth angle
 
     mujoco.mj_resetData(model, data)
-    # set initial state
-    data.joint('root').qvel = 10
-    # perturb initial velocities
-    data.qvel[:] += PERTURBATION * np.random.randn(model.nv)
 
-    # Close the viewer automatically after 30 wall-seconds.
-    start = time.time()
+    step_start = time.time()
 
     while viewer.is_running() and time.time() - start < 20:
 
